@@ -68,6 +68,7 @@ public class Login extends Activity {
         loginButton = (Button) findViewById(R.id.button);
         mydb = new Smart_gallery_db(this);
         mydb.delete_path("lol");
+        mydb.view_datebase();
         mydb.clearDatabase("photos");
         mydb.clearDatabase("persons");
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -76,34 +77,8 @@ public class Login extends Activity {
                 email = user.getText().toString();
                 getPassword = password.getText().toString();
                 dialog = new ProgressDialog(Login.this);
-                ConnectDigi connect = new ConnectDigi(email, getPassword);
+                ConnectDigi connect = new ConnectDigi(email, getPassword, Login.this, null,null);
                 connect.execute();
-                //SystemClock.sleep(30000);
-                while(connect.run){
-                    // waiting until finished protected String[] doInBackground(Void... params)
-                }
-                boolean result = connect.get_conect_result();
-                if (!result) {
-                       Toast.makeText(getApplicationContext(), "Invalid E-mail or Password !", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    Log.i("TEST", "Login reusit");
-                    Toast.makeText(getApplicationContext(), "Login reusit", Toast.LENGTH_SHORT).show();
-                     ArrayList paths = mydb.get_user_img(email);
-                    if(paths.isEmpty()){
-                        StorageApi api = connect.getapi();
-                        ScanCloud scancloud = new ScanCloud(api,email,mydb);
-                        scancloud.execute();
-                    }
-                    paths = mydb.get_user_img(email);
-                    Intent loginIntent = new Intent(Login.this, Gallery.class);
-                    loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    loginIntent.putExtra("user", email);
-                    loginIntent.putExtra("pass", getPassword);
-                    loginIntent.putExtra("ids", paths);
-                    //loginIntent.putExtra("ASDD", api);
-                    getApplicationContext().startActivity(loginIntent);
-                }
             }
         });
 
