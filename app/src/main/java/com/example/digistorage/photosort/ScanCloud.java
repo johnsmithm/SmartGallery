@@ -1,7 +1,11 @@
 package com.example.digistorage.photosort;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TableLayout;
 
 import net.koofr.api.v2.StorageApi;
 import net.koofr.api.v2.StorageApiException;
@@ -25,14 +29,18 @@ public class ScanCloud extends AsyncTask<Void, Void, Boolean> {
     private ArrayList<HashMap<String, String>> images;
     private String path = "/";
     private String DigiCloudMountID, host = "storage.rcs-rds.ro";
-    private boolean returnresutl;
-    public boolean run;
-    public ScanCloud(StorageApi a,String e,Smart_gallery_db md){
+    private  Login login;
+    private  Gallery gallery;
+    private TableLayout table;
+    public ScanCloud(StorageApi a,String e,String p,Smart_gallery_db md,Login v, Gallery g,TableLayout h){
         getemail = e;
+        getPassword=p;
         api = a;
         mydb = md;
-        this.run=true;
-          images  = new ArrayList<HashMap<String, String>>();
+        images  = new ArrayList<HashMap<String, String>>();
+        login = v;
+        gallery = g;
+        table = h;
     }
 
     public void getImageURL() throws StorageApiException {
@@ -46,8 +54,9 @@ public class ScanCloud extends AsyncTask<Void, Void, Boolean> {
                         + api.getDownloadURL(this.mountId, this.path + "/" + f.getName()));
 
                 img.put("path", api.getDownloadURL(this.mountId, this.path + "/" + f.getName()));
-                img.put("date", "");
-                img.put("size", "");
+                img.put("date", f.getName());
+                img.put("size", f.getSize().toString());
+                img.put("name", f.getName());
 
                 this.images.add(img);
             }
@@ -76,7 +85,7 @@ public class ScanCloud extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected void onPreExecute() {
      //   Log.i("TEST", "scan-User-ul cu care fac Login-ul: " + getemail + " parola: " + getPassword);
-        this.run = true;
+
     }
 
     @Override
@@ -87,17 +96,44 @@ public class ScanCloud extends AsyncTask<Void, Void, Boolean> {
             mount(DigiCloudMountID);
             getImageURL();
             set_url();
-            this.run = false;
             return true;
         } catch (StorageApiException e) {
             e.printStackTrace();
           //  Log.i("TEST", "Error: " + e.getMessage());
-            this.run = false;
             return false;
         }
     }
     protected void onPostExecute(Boolean result) {
         super.onPostExecute(result);
+        if(result){
+            if(login!=null){
+                Log.i("TEST","s-a scanat din login");
+                ArrayList paths = mydb.get_user_img(getemail);
+                Intent loginIntent = new Intent(login, Gallery.class);
+                loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                loginIntent.putExtra("user", getemail);
+                loginIntent.putExtra("pass", getPassword);
+                loginIntent.putExtra("ids", paths);
+                //loginIntent.putExtra("ASDD", api);
+                login.startActivity(loginIntent);
+            }else{
+                Log.i("TEST","s-a scanat din galery");
+                ArrayList ids = mydb.get_user_img(getemail);
+                ArrayList<String> path = mydb.get_path(ids);
+                table.removeAllViews();
+                for(String t:path){
+                    ImageView img = new ImageView(gallery);
+                    ProgressDialog progress;
+                    progress = ProgressDialog.show(gallery, "dialog title",
+                            "dialog message", true);
+                    new DownloadImageTask(img,progress)
+                            .execute(t);
+                    if(img!=null)
+                    table.addView(img);
+                }
+            }
+
+        }
         //if(result)set_url();
        // Log.i("TEST", result ? "ok-scan" : "bad-");
     }

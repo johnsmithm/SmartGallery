@@ -1,5 +1,6 @@
 package com.example.digistorage.photosort;
 
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -13,9 +14,10 @@ import java.io.InputStream;
  */
 public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
     ImageView bmImage;
-
-    public DownloadImageTask(ImageView bmImage) {
+    ProgressDialog progress;
+    public DownloadImageTask(ImageView bmImage,ProgressDialog p) {
         this.bmImage = bmImage;
+        this.progress = p;
     }
 
     protected Bitmap doInBackground(String... urls) {
@@ -24,8 +26,9 @@ public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         try {
             InputStream in = new java.net.URL(urldisplay).openStream();
             mIcon11 = BitmapFactory.decodeStream(in);
+            Log.i("TEST","on image");
         } catch (Exception e) {
-            Log.e("Error", e.getMessage());
+            Log.e("TEST", e.getMessage());
             e.printStackTrace();
         }
         return mIcon11;
@@ -33,5 +36,6 @@ public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
 
     protected void onPostExecute(Bitmap result) {
         bmImage.setImageBitmap(result);
+        this.progress.dismiss();
     }
 }

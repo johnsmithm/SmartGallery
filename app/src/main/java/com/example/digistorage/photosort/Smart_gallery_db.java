@@ -23,10 +23,10 @@ public class Smart_gallery_db extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase database) {
 
         String query = "CREATE TABLE photos ( id INTEGER PRIMARY KEY, path TEXT, " +
-                "email TEXT, data TEXT, size TEXT)";
+                "email TEXT, data TEXT, size TEXT, name TEXT)";
         database.execSQL(query);
         query = "CREATE TABLE persons ( id INTEGER PRIMARY KEY, id_photo TEXT, " +
-                "name TEXT,x TEXT,y TEXT)";
+                "name TEXT,x TEXT,y TEXT, height TEXT, width TEXT)";
         database.execSQL(query);
     }
     public void onUpgrade(SQLiteDatabase database, int version_old, int current_version) {
@@ -41,6 +41,26 @@ public class Smart_gallery_db extends SQLiteOpenHelper {
         String clearDBQuery = "DELETE FROM "+TABLE_NAME;
         database.execSQL(clearDBQuery);
     }
+    public void view_datebase(){
+        Log.i("DB","photos");
+        String selectQuery = "SELECT  * FROM photos";
+        SQLiteDatabase database = this.getWritableDatabase();
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
+                Log.i("DB", cursor.getString(0)+cursor.getString(1)+cursor.getString(2));
+            } while (cursor.moveToNext()); // Move Cursor to the next row
+        }
+        Log.i("DB","persons");
+         selectQuery = "SELECT  * FROM persons";
+         database = this.getWritableDatabase();
+         cursor = database.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
+                Log.i("DB", cursor.getString(0)+cursor.getString(1)+cursor.getString(2));
+            } while (cursor.moveToNext()); // Move Cursor to the next row
+        }
+    }
     public ArrayList<String> get_user_img(String email){
         ArrayList<String> ids = new ArrayList<String>();
         String selectQuery = "SELECT  * FROM photos where email='"+email+"'";
@@ -49,7 +69,7 @@ public class Smart_gallery_db extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 ids.add(cursor.getString(0));
-                Log.i("TEST", cursor.getString(0));
+                Log.i("DB", cursor.getString(0));
             } while (cursor.moveToNext()); // Move Cursor to the next row
         }
         return ids;
@@ -105,23 +125,23 @@ public class Smart_gallery_db extends SQLiteOpenHelper {
         return paths;
     }
     public boolean isset_path(String path,String email){
-        String selectQuery = "SELECT  id FROM photos where path='"+path+"' and email='"+email+"'";
+        String selectQuery = "SELECT  id FROM photos where data='"+path+"' and email='"+email+"'";
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
         if (cursor.moveToFirst())return true;
         return false;
     }
     public void add_new_images(String email, ArrayList<HashMap<String, String>> imgs){
-        Log.i("TEST","1");
+        Log.i("DB","s-a adaugat imagini");
         SQLiteDatabase database = this.getWritableDatabase();
         for(HashMap<String, String> img:imgs){
-            if(!isset_path(img.get("path"),email)){
-                Log.i("TEST","11");
+            if(!isset_path(img.get("date"),email)){
                 ContentValues values = new ContentValues();
                 values.put("path", img.get("path"));
                 values.put("email",email);
                 values.put("size", img.get("size"));
                 values.put("data", img.get("date"));
+              //  values.put("name", img.get("name"));
                 database.insert("photos", null, values);
             }
         }

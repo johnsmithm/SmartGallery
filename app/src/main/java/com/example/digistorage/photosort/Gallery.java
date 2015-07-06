@@ -2,6 +2,8 @@ package com.example.digistorage.photosort;
 
 
 import com.example.digistorage.photosort.Smart_gallery_db;
+
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -67,43 +69,25 @@ public class Gallery extends ActionBarActivity {
 
         for(String t:path){
             ImageView img = new ImageView(this);
-            new DownloadImageTask(img)
+            ProgressDialog progress;
+            progress = ProgressDialog.show(this, "dialog title",
+                    "dialog message", true);
+            new DownloadImageTask(img,progress)
                     .execute(t);
+            TextView view = new TextView(this);
+            view.setText("image");
+            table.addView(view);
             table.addView(img);
         }
         scan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ConnectDigi connect = new ConnectDigi(email, pass);
+                ConnectDigi connect = new ConnectDigi(email, pass, null, Gallery.this,table);
                 connect.execute();
-                while(connect.run){ }
-                boolean result = connect.get_conect_result();
-                if (!result) {
-                    Toast.makeText(getApplicationContext(), "Invalid E-mail or Password !", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    Log.i("TEST", "Login reusit");
-                    Toast.makeText(getApplicationContext(), "Login reusit", Toast.LENGTH_SHORT).show();
-                    api = connect.getapi();
-                    Setnewimages();
-                }
             }
         });
     }
-    private void Setnewimages(){
-        ScanCloud scancloud = new ScanCloud(api,email,mydb);
-        scancloud.execute();
-        while (scancloud.run){}
-        ArrayList<String>  ids = mydb.get_user_img(email);
-        ArrayList<String> path = mydb.get_path(ids);
-        table.removeAllViews();
-        for(String t:path){
-            ImageView img = new ImageView(this);
-            new DownloadImageTask(img)
-                    .execute(t);
-            table.addView(img);
-        }
-    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
